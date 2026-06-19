@@ -17,15 +17,23 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: android-actions/setup-android@v3
-      - uses: android-actions/cache@v3
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.android/build-cache
+          key: ${{ runner.os }}-android-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-android-gradle-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install @capacitor/cli@6 @capacitor/core@6 @capacitor/android@6
-      - run: npx cap init PSXTracker com.psxtracker.app --web-dir templates
-      - run: npx cap add android
-      - run: cp templates/mobile.html android/app/src/main/assets/index.html
       - run: |
+          npm install @capacitor/cli@6 @capacitor/core@6 @capacitor/android@6
+          npx cap init PSXTracker com.psxtracker.app --web-dir templates
+          npx cap add android
+          cp templates/mobile.html android/app/src/main/assets/index.html
           cd android
           ./gradlew assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
