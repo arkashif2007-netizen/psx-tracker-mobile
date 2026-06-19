@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PSXTracker</string>
+    <string name="title_activity_main">PSXTracker</string>
+    <string name="package_name">com.psxtracker.app</string>
+    <string name="custom_url_scheme">com.psxtracker.app</string>
+</resources>

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PSX Broker Account Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/style.css?v=20260619" />
+  <link rel="manifest" href="/static/manifest.json" />
+  <meta name="theme-color" content="#0b1020" />
+</head>
+<body>
+  <!-- TradingView Ticker Tape -->
+  <div class="tradingview-ticker-container">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+      {
+        "symbols": [
+          {"proName": "IKSE:KSE100", "title": "KSE-100"},
+          {"proName": "IKSE:ENGRO", "title": "ENGRO"},
+          {"proName": "IKSE:HBL", "title": "HBL"},
+          {"proName": "IKSE:LUCK", "title": "LUCK"}
+        ],
+        "showSymbolLogo": false,
+        "isTransparent": true,
+        "displayMode": "adaptive",
+        "colorTheme": "dark",
+        "locale": "en"
+      }
+      </script>
+    </div>
+  </div>
+
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">📈</span>
+        <span class="logo-text">PSX Tracker</span>
+      </div>
+      <a class="btn-ghost" href="/dashboard-pie.html" target="_blank">Open Pie Charts</a>
+    </div>
+    <div class="header-center">
+      <nav class="tab-nav">
+        <button class="tab active" data-tab="dashboard">Dashboard</button>
+        <button class="tab" data-tab="transactions">Transactions</button>
+        <button class="tab" data-tab="add-transaction">Add Transaction</button>
+        <button class="tab" data-tab="capital">Capital</button>
+        <button class="tab" data-tab="tax">Tax Payment</button>
+        <button class="tab" data-tab="reports">Reports</button>
+        <button class="tab" data-tab="audit">Audit Log</button>
+      </nav>
+    </div>
+    <div class="header-right">
+      <div class="live-indicator">
+        <span class="pulse-dot"></span>
+        <span>Live</span>
+      </div>
+      <span class="last-updated" id="lastUpdated">--</span>
+    </div>
+  </header>
+
+  <main class="app-layout">
+    <!-- Metrics Row -->
+    <section class="metrics-grid">
+      <div class="glass-card metric-card" id="metric-total-invested">
+        <span class="label">Total Invested</span>
+        <span class="value mono" id="total-invested">PKR 0</span>
+      </div>
+      <div class="glass-card metric-card" id="metric-total-withdrawn">
+        <span class="label">Total Withdrawn</span>
+        <span class="value mono" id="total-withdrawn">PKR 0</span>
+      </div>
+      <div class="glass-card metric-card" id="metric-portfolio-value">
+        <span class="label">Portfolio Value</span>
+        <span class="value mono" id="portfolio-value">PKR 0</span>
+      </div>
+      <div class="glass-card metric-card" id="metric-net-realized">
+        <span class="label">Net Realized Profit</span>
+        <span class="value mono" id="net-realized">PKR 0</span>
+      </div>
+    </section>
+
+    <!-- PnL + Tax Bar -->
+    <section class="glass-card" id="pnl-tax-bar">
+      <div class="section-title">Portfolio P&amp;L &amp; Tax Overview</div>
+      <div class="pnl-tax-grid">
+        <div class="pnl-card" id="pnl-card-unrealized">
+          <div class="pnl-title">Unrealized P&L</div>
+          <div class="pnl-value mono" id="unrealized-pnl">PKR 0</div>
+          <div class="pnl-sub" id="unrealized-pnl-sub">0% on cost</div>
+        </div>
+        <div class="pnl-card" id="pnl-card-net">
+          <div class="pnl-title">Net Unrealized P&L (after buy tax)</div>
+          <div class="pnl-value mono" id="net-unrealized-pnl">PKR 0</div>
+          <div class="pnl-sub" id="net-unrealized-pnl-sub">Buy tax: PKR 0</div>
+        </div>
+        <div class="pnl-card" id="pnl-card-tax">
+          <div class="pnl-title">Tax Payable</div>
+          <div class="pnl-value mono" id="tax-payable">PKR 0</div>
+          <div class="pnl-sub" id="tax-payable-sub">Owed: PKR 0 / Paid: PKR 0</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Allocation Charts -->
+    <section class="allocation-grid">
+      <div class="glass-card allocation-card">
+        <div class="section-title">Kashif — Allocation</div>
+        <div class="chart-wrap">
+          <canvas id="kashif-allocation"></canvas>
+        </div>
+      </div>
+      <div class="glass-card allocation-card">
+        <div class="section-title">Shahvez — Allocation</div>
+        <div class="chart-wrap">
+          <canvas id="shahvez-allocation"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section Buttons -->
+    <nav class="section-bar" aria-label="Section shortcuts">
+      <button class="section-btn" data-target="transactions">Transactions</button>
+      <button class="section-btn" data-target="capital">Capital</button>
+      <button class="section-btn" data-target="add-transaction">Add Transaction</button>
+      <button class="section-btn" data-target="tax">Tax Payment</button>
+      <button class="section-btn" data-target="reports">Reports</button>
+      <button class="section-btn" data-target="audit">Audit Log</button>
+    </nav>
+
+    <!-- Two-column user panels -->
+    <section class="users-grid">
+      <!-- Kashif -->
+      <article class="glass-card user-panel" id="panel-kashif">
+        <div class="user-header kashif">
+          <div class="user-avatar">K</div>
+          <div class="user-info">
+            <h2 class="user-name">Kashif</h2>
+            <span class="user-label">Account Holder</span>
+          </div>
+          <div class="user-balance">
+            <span class="balance-label">Available</span>
+            <span class="balance-value mono" id="kashif-available">PKR 0</span>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div class="section-title">Holdings</div>
+          <div class="table-wrap">
+            <table class="data-table" id="kashif-holdings-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Qty</th>
+                  <th>Avg Cost</th>
+                  <th>Live Price</th>
+                  <th>P&L</th>
+                  <th>P&L %</th>
+                  <th>Unrealized P&L</th>
+                  <th>Net Unrealized P&L</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </article>
+
+      <!-- Shahvez -->
+      <article class="glass-card user-panel" id="panel-shahvez">
+        <div class="user-header shahvez">
+          <div class="user-avatar">S</div>
+          <div class="user-info">
+            <h2 class="user-name">Shahvez</h2>
+            <span class="user-label">Account Holder</span>
+          </div>
+          <div class="user-balance">
+            <span class="balance-label">Available</span>
+            <span class="balance-value mono" id="shahvez-available">PKR 0</span>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div class="section-title">Holdings</div>
+          <div class="table-wrap">
+            <table class="data-table" id="shahvez-holdings-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Qty</th>
+                  <th>Avg Cost</th>
+                  <th>Live Price</th>
+                  <th>P&L</th>
+                  <th>P&L %</th>
+                  <th>Unrealized P&L</th>
+                  <th>Net Unrealized P&L</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+        </div>
+      </article>
+    </section>
+
+    <!-- Tab panels -->
+    <section class="tab-panels">
+      <!-- Transactions -->
+      <div class="tab-panel" id="tab-transactions">
+        <div class="glass-card">
+          <div class="section-title">Transaction History</div>
+          <div class="table-wrap">
+            <table class="data-table" id="transactions-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Individual</th>
+                  <th>Type</th>
+                  <th>Symbol</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Total</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Transaction -->
+      <div class="tab-panel" id="tab-add-transaction">
+        <div class="glass-card">
+          <div class="section-title">Add Transaction</div>
+          <form id="form-transaction" class="form-grid">
+            <div class="field">
+              <label class="form-label" for="tx-individual">Individual</label>
+              <select id="tx-individual" class="glass-input" required>
+                <option value="kashif">Kashif</option>
+                <option value="shahvez">Shahvez</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="form-label" for="tx-type">Type</label>
+              <select id="tx-type" class="glass-input" required>
+                <option value="buy">Buy</option>
+                <option value="sell">Sell</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="form-label" for="tx-symbol">Stock Symbol</label>
+              <input id="tx-symbol" class="glass-input" placeholder="e.g. ENGRO" required />
+            </div>
+            <div class="field">
+              <label class="form-label" for="tx-stock-name">Stock Name</label>
+              <input id="tx-stock-name" class="glass-input" placeholder="e.g. Engro Corporation" required />
+            </div>
+            <div class="field">
+              <label class="form-label" for="tx-quantity">Quantity</label>
+              <input id="tx-quantity" class="glass-input" type="number" step="any" min="0" required />
+            </div>
+            <div class="field">
+              <label class="form-label" for="tx-price">Price (PKR)</label>
+              <input id="tx-price" class="glass-input" type="number" step="any" min="0" required />
+            </div>
+            <div class="field">
+              <label class="form-label" for="tx-fees">Fees (PKR)</label>
+              <input id="tx-fees" class="glass-input" type="number" step="any" min="0" value="0" />
+            </div>
+            <div class="field">
+              <label class="form-label" for="tx-brokerage">Brokerage (PKR)</label>
+              <input id="tx-brokerage" class="glass-input" type="number" step="any" min="0" value="0" />
+            </div>
+            <div class="field">
+              <label class="form-label" for="tx-date">Date</label>
+              <input id="tx-date" class="glass-input" type="date" required />
+            </div>
+            <div class="field full-width">
+              <label class="form-label" for="tx-notes">Notes</label>
+              <textarea id="tx-notes" class="glass-input" rows="2"></textarea>
+            </div>
+            <div class="actions full-width">
+              <button type="submit" class="btn-primary">Submit Transaction</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Capital Management -->
+      <div class="tab-panel" id="tab-capital">
+        <div class="glass-card">
+          <div class="section-title">Capital Management</div>
+          <form id="form-capital" class="form-grid">
+            <div class="field">
+              <label class="form-label" for="cap-individual">Individual</label>
+              <select id="cap-individual" class="glass-input" required>
+                <option value="kashif">Kashif</option>
+                <option value="shahvez">Shahvez</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="form-label" for="cap-type">Type</label>
+              <select id="cap-type" class="glass-input" required>
+                <option value="deposit">Deposit</option>
+                <option value="withdrawal">Withdrawal</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="form-label" for="cap-amount">Amount (PKR)</label>
+              <input id="cap-amount" class="glass-input" type="number" step="any" min="0" required />
+            </div>
+            <div class="field">
+              <label class="form-label" for="cap-date">Date</label>
+              <input id="cap-date" class="glass-input" type="date" required />
+            </div>
+            <div class="field full-width">
+              <label class="form-label" for="cap-note">Note</label>
+              <input id="cap-note" class="glass-input" />
+            </div>
+            <div class="actions full-width">
+              <button type="submit" class="btn-primary">Submit Capital Entry</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tax Payment -->
+      <div class="tab-panel" id="tab-tax">
+        <div class="glass-card">
+          <div class="section-title">Tax Payment</div>
+          <form id="form-tax" class="form-grid">
+            <div class="field">
+              <label class="form-label" for="tax-individual">Individual</label>
+              <select id="tax-individual" class="glass-input" required>
+                <option value="kashif">Kashif</option>
+                <option value="shahvez">Shahvez</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="form-label" for="tax-amount">Amount (PKR)</label>
+              <input id="tax-amount" class="glass-input" type="number" step="any" min="0" required />
+            </div>
+            <div class="field">
+              <label class="form-label" for="tax-period">Period</label>
+              <input id="tax-period" class="glass-input" placeholder="e.g. 2024-Q1" />
+            </div>
+            <div class="field">
+              <label class="form-label" for="tax-date">Date</label>
+              <input id="tax-date" class="glass-input" type="date" required />
+            </div>
+            <div class="field full-width">
+              <label class="form-label" for="tax-note">Note</label>
+              <input id="tax-note" class="glass-input" />
+            </div>
+            <div class="actions full-width">
+              <button type="submit" class="btn-primary">Record Tax Payment</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Reports -->
+      <div class="tab-panel" id="tab-reports">
+        <div class="glass-card">
+          <div class="section-title">Reports Summary</div>
+          <div class="reports-grid">
+            <div class="report-block" id="report-kashif">
+              <h3 class="report-title">Kashif</h3>
+              <div class="report-row"><span>Available Balance</span><span class="mono" id="report-kashif-available">0</span></div>
+              <div class="report-row"><span>Total Invested</span><span class="mono" id="report-kashif-invested">0</span></div>
+              <div class="report-row"><span>Total Withdrawn</span><span class="mono" id="report-kashif-withdrawn">0</span></div>
+              <div class="report-row"><span>Gross Realized Profit</span><span class="mono" id="report-kashif-gross">0</span></div>
+              <div class="report-row"><span>Tax Owed</span><span class="mono" id="report-kashif-tax-owed">0</span></div>
+              <div class="report-row"><span>Tax Paid</span><span class="mono" id="report-kashif-tax-paid">0</span></div>
+              <div class="report-row"><span>Net Position</span><span class="mono" id="report-kashif-net">0</span></div>
+            </div>
+            <div class="report-block" id="report-shahvez">
+              <h3 class="report-title">Shahvez</h3>
+              <div class="report-row"><span>Available Balance</span><span class="mono" id="report-shahvez-available">0</span></div>
+              <div class="report-row"><span>Total Invested</span><span class="mono" id="report-shahvez-invested">0</span></div>
+              <div class="report-row"><span>Total Withdrawn</span><span class="mono" id="report-shahvez-withdrawn">0</span></div>
+              <div class="report-row"><span>Gross Realized Profit</span><span class="mono" id="report-shahvez-gross">0</span></div>
+              <div class="report-row"><span>Tax Owed</span><span class="mono" id="report-shahvez-tax-owed">0</span></div>
+              <div class="report-row"><span>Tax Paid</span><span class="mono" id="report-shahvez-tax-paid">0</span></div>
+              <div class="report-row"><span>Net Position</span><span class="mono" id="report-shahvez-net">0</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit Log -->
+      <div class="tab-panel" id="tab-audit">
+        <div class="glass-card">
+          <div class="section-title">Audit Log</div>
+          <div class="table-wrap">
+            <table class="data-table" id="audit-log-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Individual</th>
+                  <th>Action</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal overlay -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal glass-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirm Transaction</h3>
+        <button class="modal-close" onclick="closeModal('confirm-modal')">✕</button>
+      </div>
+      <div class="modal-body" id="confirm-modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('confirm-modal')">Cancel</button>
+        <button class="btn-primary" id="confirm-modal-submit">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div id="toast-container"></div>
+
+  <script src="/static/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

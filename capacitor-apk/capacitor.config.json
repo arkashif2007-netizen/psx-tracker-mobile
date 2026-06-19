@@ -1,0 +1,6 @@
+{
+  "appId": "com.psxtracker.app",
+  "appName": "PSXTracker",
+  "webDir": "../templates",
+  "startUrl": "mobile.html"
+}
