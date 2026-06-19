@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#070b14" />
+  <meta name="apple-mobile-web-app-title" content="PSX Tracker" />
+  <title>PSX Tracker</title>
+  <link rel="manifest" href="/static/manifest.json" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css?v=20260619-mobile-app" />
+</head>
+<body class="app-mobile">
+
+  <header class="app-header-mobile">
+    <div class="mobile-header-bar">
+      <span class="logo-text">PSX Tracker</span>
+      <button class="btn-ghost btn-small" id="install-btn" style="display:none;" onclick="installPWA()">Install</button>
+    </div>
+  </header>
+
+  <main class="app-mobile-body">
+
+    <!-- ===== DASHBOARD TAB ===== -->
+    <section class="tab-panel" id="tab-dashboard">
+      <div class="mobile-metrics">
+        <div class="mobile-card metric-card">
+          <div class="label">Total Invested</div>
+          <div class="value mono" id="total-invested">PKR 0</div>
+        </div>
+        <div class="mobile-card metric-card">
+          <div class="label">Total Withdrawn</div>
+          <div class="value mono" id="total-withdrawn">PKR 0</div>
+        </div>
+        <div class="mobile-card metric-card">
+          <div class="label">Portfolio Value</div>
+          <div class="value mono" id="portfolio-value">PKR 0</div>
+        </div>
+        <div class="mobile-card metric-card">
+          <div class="label">Net Realized Profit</div>
+          <div class="value mono" id="net-realized">PKR 0</div>
+        </div>
+      </div>
+
+      <section class="mobile-pnl">
+        <div class="pnl-card">
+          <div class="pnl-title">Unrealized P&L</div>
+          <div class="pnl-value mono" id="unrealized-pnl">PKR 0</div>
+          <div class="pnl-sub" id="unrealized-pnl-sub">0% on cost</div>
+        </div>
+        <div class="pnl-card">
+          <div class="pnl-title">Net Unrealized P&L</div>
+          <div class="pnl-value mono" id="net-unrealized-pnl">PKR 0</div>
+          <div class="pnl-sub" id="net-unrealized-pnl-sub">Net after tax</div>
+        </div>
+        <div class="pnl-card">
+          <div class="pnl-title">Tax Payable</div>
+          <div class="pnl-value mono" id="tax-payable">PKR 0</div>
+          <div class="pnl-sub" id="tax-payable-sub">Owed: PKR 0 / Paid: PKR 0</div>
+        </div>
+      </section>
+
+      <section class="mobile-user-block">
+        <h2 class="user-heading kashif">Kashif</h2>
+        <div class="mobile-card">
+          <div class="label">Available</div>
+          <div class="value mono" id="kashif-available">PKR 0</div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="kashif-holdings-table-dashboard">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Qty</th>
+                <th>Avg Cost</th>
+                <th>P&L</th>
+                <th>Net P&L</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="mobile-user-block">
+        <h2 class="user-heading shahvez">Shahvez</h2>
+        <div class="mobile-card">
+          <div class="label">Available</div>
+          <div class="value mono" id="shahvez-available">PKR 0</div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="shahvez-holdings-table-dashboard">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Qty</th>
+                <th>Avg Cost</th>
+                <th>P&L</th>
+                <th>Net P&L</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <!-- ===== HOLDINGS TAB ===== -->
+    <section class="tab-panel" id="tab-holdings">
+      <div class="mobile-user-block">
+        <h2 class="user-heading kashif">Kashif Holdings</h2>
+        <div class="table-wrap">
+          <table class="data-table" id="kashif-holdings-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Qty</th>
+                <th>Avg Cost</th>
+                <th>P&L</th>
+                <th>Net P&L</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mobile-user-block">
+        <h2 class="user-heading shahvez">Shahvez Holdings</h2>
+        <div class="table-wrap">
+          <table class="data-table" id="shahvez-holdings-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Qty</th>
+                <th>Avg Cost</th>
+                <th>P&L</th>
+                <th>Net P&L</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ADD TRANSACTION TAB ===== -->
+    <section class="tab-panel" id="tab-add">
+      <div class="glass-card">
+        <div class="section-title">Add Transaction</div>
+        <form id="mobile-txn-form-mobile" class="form-grid compact">
+          <select id="m-tx-individual" class="glass-input" required>
+            <option value="kashif">Kashif</option>
+            <option value="shahvez">Shahvez</option>
+          </select>
+          <select id="m-tx-type" class="glass-input" required>
+            <option value="buy">Buy</option>
+            <option value="sell">Sell</option>
+          </select>
+          <input id="m-tx-symbol" class="glass-input" placeholder="Stock Symbol" required />
+          <input id="m-tx-name" class="glass-input" placeholder="Stock Name" required />
+          <input id="m-tx-qty" class="glass-input" type="number" placeholder="Qty" required />
+          <input id="m-tx-price" class="glass-input" type="number" placeholder="Price" required />
+          <input id="m-tx-date" class="glass-input" type="date" required />
+          <button type="submit" class="btn-primary full-width">Save Transaction</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===== CAPITAL TAB ===== -->
+    <section class="tab-panel" id="tab-capital">
+      <div class="glass-card">
+        <div class="section-title">Capital Management</div>
+        <form id="mobile-capital-form-mobile" class="form-grid compact">
+          <select id="m-cap-individual" class="glass-input" required>
+            <option value="kashif">Kashif</option>
+            <option value="shahvez">Shahvez</option>
+          </select>
+          <select id="m-cap-type" class="glass-input" required>
+            <option value="add">Deposit</option>
+            <option value="withdraw">Withdrawal</option>
+          </select>
+          <input id="m-cap-amount" class="glass-input" type="number" placeholder="Amount" required />
+          <input id="m-cap-date" class="glass-input" type="date" required />
+          <button type="submit" class="btn-primary full-width">Save Capital</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===== TAX TAB ===== -->
+    <section class="tab-panel" id="tab-tax">
+      <div class="glass-card">
+        <div class="section-title">Tax Payment</div>
+        <form id="mobile-tax-form-mobile" class="form-grid compact">
+          <select id="m-tax-individual" class="glass-input" required>
+            <option value="kashif">Kashif</option>
+            <option value="shahvez">Shahvez</option>
+          </select>
+          <input id="m-tax-amount" class="glass-input" type="number" placeholder="Amount" required />
+          <input id="m-tax-date" class="glass-input" type="date" required />
+          <button type="submit" class="btn-primary full-width">Save Tax Payment</button>
+        </form>
+      </div>
+    </section>
+
+    <div id="toast-container-mobile"></div>
+  </main>
+
+  <nav class="mobile-bottom-nav">
+    <button class="nav-tab active" data-target="dashboard">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Dashboard</span>
+    </button>
+    <button class="nav-tab" data-target="holdings">
+      <span class="nav-icon">📦</span>
+      <span class="nav-label">Holdings</span>
+    </button>
+    <button class="nav-tab" data-target="add">
+      <span class="nav-icon">➕</span>
+      <span class="nav-label">Add</span>
+    </button>
+    <button class="nav-tab" data-target="capital">
+      <span class="nav-icon">💰</span>
+      <span class="nav-label">Capital</span>
+    </button>
+    <button class="nav-tab" data-target="tax">
+      <span class="nav-icon">🧾</span>
+      <span class="nav-label">Tax</span>
+    </button>
+  </nav>
+
+  <script>
+    const API_BASE = '/api';
+
+    function setText(id, text) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = text;
+    }
+
+    function formatPKR(amount) {
+      if (amount === null || amount === undefined || isNaN(amount)) return 'PKR 0';
+      return 'PKR ' + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    }
+
+    function renderMiniHoldings(holdings, tableId) {
+      const tbody = document.querySelector('#' + tableId + ' tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      holdings.forEach((h) => {
+        if (!h || !h.symbol) return;
+        const qty = parseFloat((h.quantity || 0));
+        const avgCost = parseFloat((h.avg_cost || 0));
+        const totalCost = parseFloat((h.total_cost || 0));
+        const pnl = 0;
+        const tax = totalCost * 0.15;
+        const net = pnl - tax;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = [
+          h.symbol,
+          qty,
+          'PKR ' + avgCost.toFixed(2),
+          '--',
+          'PKR ' + net.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})
+        ].map(v => '<td class="mono">' + v + '</td>').join('');
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function refreshDashboard() {
+      try {
+        const res = await fetch(`${API_BASE}/dashboard`);
+        if (!res.ok) throw new Error('dashboard failed');
+        const data = await res.json();
+
+        const k = data.kashif || {};
+        const s = data.shahvez || {};
+
+        setText('kashif-available', formatPKR(k.available_balance));
+        setText('kashif-realized-profit', formatPKR(k.realized_profit));
+        setText('kashif-tax-owed', formatPKR(k.tax_owed));
+        setText('kashif-tax-paid', formatPKR(k.tax_paid));
+
+        setText('shahvez-available', formatPKR(s.available_balance));
+        setText('shahvez-realized-profit', formatPKR(s.realized_profit));
+        setText('shahvez-tax-owed', formatPKR(s.tax_owed));
+        setText('shahvez-tax-paid', formatPKR(s.tax_paid));
+
+        renderMiniHoldings(k.holdings || [], 'kashif-holdings-table-dashboard');
+        renderMiniHoldings(s.holdings || [], 'shahvez-holdings-table-dashboard');
+        renderMiniHoldings(k.holdings || [], 'kashif-holdings-table');
+        renderMiniHoldings(s.holdings || [], 'shahvez-holdings-table');
+
+        const totalInvested = (k.total_invested || 0) + (s.total_invested || 0);
+        const totalWithdrawn = (k.total_withdrawn || 0) + (s.total_withdrawn || 0);
+        const portfolioValue = (k.available_balance || 0) + (s.available_balance || 0)
+          + (k.holdings || []).reduce((sum, h) => sum + (parseFloat(h.total_cost || 0)), 0)
+          + (s.holdings || []).reduce((sum, h) => sum + (parseFloat(h.total_cost || 0)), 0);
+        const netRealized = (k.realized_profit || 0) - (k.tax_owed || 0)
+          + (s.realized_profit || 0) - (s.tax_owed || 0);
+
+        setText('total-invested', formatPKR(totalInvested));
+        setText('total-withdrawn', formatPKR(totalWithdrawn));
+        setText('portfolio-value', formatPKR(portfolioValue));
+        setText('net-realized', formatPKR(netRealized));
+      } catch (err) {
+        console.error('dashboard refresh failed', err);
+      }
+    }
+
+    function switchTab(target) {
+      const map = { dashboard: 'dashboard', holdings: 'holdings', add: 'add', capital: 'capital', tax: 'tax' };
+      const id = map[target];
+      document.querySelectorAll('.tab-panel').forEach((el) => el.classList.remove('active'));
+      const panel = document.getElementById('tab-' + id);
+      if (panel) panel.classList.add('active');
+
+      document.querySelectorAll('.nav-tab').forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-target') === target);
+      });
+    }
+
+    function showMobileToast(message, type = 'info') {
+      const container = document.getElementById('toast-container-mobile');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = 'toast toast-' + type;
+      toast.textContent = message;
+      container.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.add('show'));
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function installPWA() {
+      if (window.deferredPWA) window.deferredPWA.prompt();
+    }
+
+    /* ---- Forms ---- */
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.nav-tab').forEach((btn) => {
+        btn.addEventListener('click', () => switchTab(btn.getAttribute('data-target')));
+      });
+
+      const txnForm = document.getElementById('mobile-txn-form-mobile');
+      if (txnForm) txnForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+          individual: document.getElementById('m-tx-individual').value,
+          type: document.getElementById('m-tx-type').value,
+          symbol: document.getElementById('m-tx-symbol').value,
+          stock_name: document.getElementById('m-tx-name').value,
+          quantity: parseFloat(document.getElementById('m-tx-qty').value || 0),
+          price: parseFloat(document.getElementById('m-tx-price').value || 0),
+          date: document.getElementById('m-tx-date').value,
+        };
+        if (!payload.individual || !payload.type || !payload.symbol || !payload.quantity || !payload.price || !payload.date) {
+          showMobileToast('Please fill all fields', 'error');
+          return;
+        }
+        const res = await fetch(`${API_BASE}/transactions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (data.status !== 'ok') throw new Error(data.error);
+        showMobileToast('Transaction recorded', 'success');
+        txnForm.reset();
+        switchTab('dashboard');
+        refreshDashboard();
+      });
+
+      const capForm = document.getElementById('mobile-capital-form-mobile');
+      if (capForm) capForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+          individual: document.getElementById('m-cap-individual').value,
+          ctype: document.getElementById('m-cap-type').value,
+          amount: parseFloat(document.getElementById('m-cap-amount').value || 0),
+          date: document.getElementById('m-cap-date').value,
+        };
+        if (!payload.individual || !payload.ctype || !payload.amount || !payload.date) {
+          showMobileToast('Please fill all fields', 'error');
+          return;
+        }
+        const res = await fetch(`${API_BASE}/capital`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (data.status !== 'ok') throw new Error(data.error);
+        showMobileToast('Capital entry recorded', 'success');
+        capForm.reset();
+        switchTab('dashboard');
+        refreshDashboard();
+      });
+
+      const taxForm = document.getElementById('mobile-tax-form-mobile');
+      if (taxForm) taxForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+          individual: document.getElementById('m-tax-individual').value,
+          amount: parseFloat(document.getElementById('m-tax-amount').value || 0),
+          date: document.getElementById('m-tax-date').value,
+        };
+        if (!payload.individual || !payload.amount || !payload.date) {
+          showMobileToast('Please fill all fields', 'error');
+          return;
+        }
+        const res = await fetch(`${API_BASE}/tax-payment`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (data.status !== 'ok') throw new Error(data.error);
+        showMobileToast('Tax payment recorded', 'success');
+        taxForm.reset();
+        switchTab('dashboard');
+        refreshDashboard();
+      });
+
+      refreshDashboard();
+      setInterval(refreshDashboard, 15000);
+    });
+  </script>
+</body>
+</html>
